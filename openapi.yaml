@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Restaurant Menu Service API
+  description: Simple API for restaurant menu items
+  version: 1.0.0
+  contact:
+    name: Menu Service Team
+servers:
+  - url: /api
+    description: Menu service API
+paths:
+  /menu:
+    get:
+      summary: Get all menu items
+      description: Retrieve all available menu items with their details
+      operationId: getMenu
+      tags:
+        - Menu
+      responses:
+        '200':
+          description: Successful response with menu items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuItem'
+                  count:
+                    type: integer
+                    example: 5
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Check if the service is running
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-01T12:00:00.000Z"
+components:
+  schemas:
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "item_001"
+        name:
+          type: string
+          example: "Vegetable Rice Bowl"
+        description:
+          type: string
+          example: "Nutritious rice bowl with seasonal vegetables, dal, and yogurt"
+        price:
+          type: number
+          format: float
+          example: 45.00
+        category:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+          example: "lunch"
+        nutritionInfo:
+          type: object
+          properties:
+            calories:
+              type: integer
+              example: 380
+            protein:
+              type: integer
+              example: 12
+            carbohydrates:
+              type: integer
+              example: 65
+            fat:
+              type: integer
+              example: 8
+            fiber:
+              type: integer
+              example: 6
+        ingredients:
+          type: array
+          items:
+            type: string
+          example: ["Basmati Rice", "Mixed Vegetables", "Dal", "Yogurt", "Spices"]
+        allergens:
+          type: array
+          items:
+            type: string
+          example: ["Dairy"]
+        isVegetarian:
+          type: boolean
+          example: true
+        isVegan:
+          type: boolean
+          example: false
+        isGlutenFree:
+          type: boolean
+          example: true
+        isAvailable:
+          type: boolean
+          example: true
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error retrieving menu data"
+        error:
+          type: string
+          example: "Internal server error"
