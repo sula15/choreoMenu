@@ -2,6 +2,23 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+console.log('=== Menu Service Starting ===');
+console.log('Node version:', process.version);
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Target port:', PORT);
+console.log('Process PID:', process.pid);
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 // Mock menu data
 const mockMenuData = [
   {
@@ -138,10 +155,57 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Root endpoint for debugging
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Menu Service is running', 
+    endpoints: ['/api/menu', '/health'],
+    port: PORT 
+  });
+});
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`Menu service running on port ${PORT}`);
-  console.log(`Menu endpoint: http://localhost:${PORT}/api/menu`);
+console.log('Attempting to start server...');
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log('=== SERVER STARTED SUCCESSFULLY ===');
+  console.log(`Menu service running on http://0.0.0.0:${PORT}`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/health`);
+  console.log(`Menu endpoint: http://0.0.0.0:${PORT}/api/menu`);
+  console.log('===================================');
+});
+
+server.on('error', (err) => {
+  console.error('=== SERVER STARTUP ERROR ===');
+  console.error('Error details:', err);
+  console.error('Error code:', err.code);
+  console.error('Error message:', err.message);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
+  console.error('============================');
+  process.exit(1);
+});
+
+server.on('listening', () => {
+  const addr = server.address();
+  console.log('Server listening on:', addr);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
 
 module.exports = app;
